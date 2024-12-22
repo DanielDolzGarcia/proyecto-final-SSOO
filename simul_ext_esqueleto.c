@@ -48,7 +48,7 @@ int main()
      FILE *fent;
      
      // Lectura del fichero completo de una sola vez
-     ...
+     //...
      
      fent = fopen("particion.bin","r+b");
      fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);    
@@ -71,7 +71,7 @@ int main()
             Directorio(&directorio,&ext_blq_inodos);
             continue;
             }
-         ...
+         //...
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
          GrabarByteMaps(&ext_bytemaps,fent);
@@ -107,4 +107,25 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
     else argumento2[0] = '\0';
     
     return 0;
+}
+
+void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich) {
+    fseek(fich, 2 * SIZE_BLOQUE, SEEK_SET);
+    fwrite(inodos, SIZE_BLOQUE, 1, fich);
+    fwrite(directorio, SIZE_BLOQUE, 1, fich);
+}
+
+void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich) {
+    fseek(fich, SIZE_BLOQUE, SEEK_SET);
+    fwrite(ext_bytemaps, SIZE_BLOQUE, 1, fich);
+}
+
+void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich) {
+    fseek(fich, 0, SEEK_SET);
+    fwrite(ext_superblock, SIZE_BLOQUE, 1, fich);
+}
+
+void GrabarDatos(EXT_DATOS *memdatos, FILE *fich) { //Me da error en esta funcion
+    fseek(fich, 4 * SIZE_BLOQUE, SEEK_SET);
+    fwrite(memdatos, 1, MAX_BLOQUES_DATOS, fich);
 }
