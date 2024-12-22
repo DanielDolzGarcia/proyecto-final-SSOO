@@ -1,3 +1,5 @@
+
+
 #include<stdio.h>
 #include<string.h>
 #include<ctype.h>
@@ -85,4 +87,24 @@ int main()
             return 0;
          }
      }
+}
+
+int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2) {
+    char *token;
+    char string[LONGITUD_COMANDO];
+    
+    strcpy(string, strcomando);
+    token = strtok(string, " \n");
+    if (token == NULL) return 1;
+    
+    strcpy(orden, token);
+    token = strtok(NULL, " \n");
+    if (token != NULL) strcpy(argumento1, token);
+    else argumento1[0] = '\0';
+    
+    token = strtok(NULL, " \n");
+    if (token != NULL) strcpy(argumento2, token);
+    else argumento2[0] = '\0';
+    
+    return 0;
 }
