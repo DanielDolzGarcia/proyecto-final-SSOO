@@ -71,6 +71,19 @@ int main()
             Directorio(&directorio,&ext_blq_inodos);
             continue;
             }
+        if (strcmp(orden,"info")==0) {
+          LeeSuperBloque(&ext_superblock);
+          continue;
+        }
+        if (strcmp(orden, "rename")==0) {
+            if (argumento1[0] == '\0' || argumento2[0] == '\0') {
+                printf("ERROR: Sintaxis incorrecta. Uso: rename <nombre_antiguo> <nombre_nuevo>\n");
+                continue;
+            }
+            Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2);
+            Grabarinodosydirectorio(&directorio, &ext_blq_inodos, fent);
+            continue;
+        }
          //...
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
@@ -86,11 +99,6 @@ int main()
             fclose(fent);
             return 0;
          }
-		 
-		 if (strcmp(orden,"info")==0) {
-			LeeSuperBloque(&ext_superblock);
-			continue;
-		}
 
      }
 }
@@ -181,4 +189,27 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
             printf("\n");
         }
     }
+}
+
+int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo) {
+    int i;
+    for(i = 0; i < MAX_FICHEROS; i++) {
+        if(directorio[i].dir_inodo != NULL_INODO && 
+           strcmp(directorio[i].dir_nfich, nombrenuevo) == 0) {
+            printf("ERROR: El fichero %s ya existe\n", nombrenuevo);
+            return -1;
+        }
+    }
+    
+    for(i = 0; i < MAX_FICHEROS; i++) {
+        if(directorio[i].dir_inodo != NULL_INODO && 
+           strcmp(directorio[i].dir_nfich, nombreantiguo) == 0) {
+            // Esto cambia el nombre
+            strcpy(directorio[i].dir_nfich, nombrenuevo);
+            return 0;
+        }
+    }
+    
+    printf("ERROR: Fichero %s no encontrado\n", nombreantiguo);
+    return -1;
 }
