@@ -160,3 +160,25 @@ void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
     }
     printf("\n");
 }
+
+void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
+    // Empezamos en 1 para saltar la entrada "."
+    for(int i = 1; i < MAX_FICHEROS; i++) {
+        if(directorio[i].dir_inodo != NULL_INODO) {
+            // Obtener el inodo correspondiente
+            EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[directorio[i].dir_inodo];
+            
+            // Imprimir nombre y tamaño
+            printf("%s\ttamaño:%d\tinodo:%d bloques:", 
+                   directorio[i].dir_nfich,
+                   inodo->size_fichero,
+                   directorio[i].dir_inodo);
+            
+            // Imprimir lista de bloques
+            for(int j = 0; j < MAX_NUMS_BLOQUE_INODO && inodo->i_nbloque[j] != NULL_BLOQUE; j++) {
+                printf(" %d", inodo->i_nbloque[j]);
+            }
+            printf("\n");
+        }
+    }
+}
