@@ -114,7 +114,7 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
     
     return 0;
 }
-/*
+
 void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich) {
     fseek(fich, 2 * SIZE_BLOQUE, SEEK_SET);
     fwrite(inodos, SIZE_BLOQUE, 1, fich);
@@ -131,11 +131,11 @@ void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich) {
     fwrite(ext_superblock, SIZE_BLOQUE, 1, fich);
 }
 
-void GrabarDatos(EXT_DATOS *memdatos, FILE *fich) { //Me da error en esta funcion
+void GrabarDatos(EXT_DATOS *memdatos, FILE *fich) {
     fseek(fich, 4 * SIZE_BLOQUE, SEEK_SET);
-    fwrite(memdatos, 1, MAX_BLOQUES_DATOS, fich);
+    fwrite(memdatos, SIZE_BLOQUE, MAX_BLOQUES_DATOS, fich);
 }
-*/
+
 void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup) {
     printf("Bloque %d Bytes\n", psup->s_block_size);
     printf("Inodos particion = %d\n", psup->s_inodes_count);
@@ -143,4 +143,20 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup) {
     printf("Bloques particion = %d\n", psup->s_blocks_count);
     printf("Bloques libres = %d\n", psup->s_free_blocks_count);
     printf("Primer bloque de datos = %d\n", psup->s_first_data_block);
+}
+
+void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
+    printf("Inodos: ");
+    // Muestra bytemap de inodos
+    for(int i = 0; i < MAX_INODOS; i++) {
+        printf("%d ", ext_bytemaps->bmap_inodos[i]);
+    }
+    printf("\n");
+    
+    printf("Bloques [0-25]: ");
+    // Muestra los primeros 25 bloques
+    for(int i = 0; i < 25; i++) {
+        printf("%d ", ext_bytemaps->bmap_bloques[i]);
+    }
+    printf("\n");
 }
