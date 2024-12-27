@@ -92,6 +92,20 @@ int main()
             Imprimir(directorio, &ext_blq_inodos, memdatos, argumento1);
             continue;
         }
+		if (strcmp(orden, "remove")==0) {
+			if (argumento1[0] == '\0') {
+				printf("ERROR: Sintaxis incorrecta. Uso: remove <nombre_fichero>\n");
+				continue;
+			}
+			if (Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent) == 0) {
+				// Guardar cambios
+				Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+				GrabarByteMaps(&ext_bytemaps, fent);
+				GrabarSuperBloque(&ext_superblock, fent);
+			}
+			continue;
+		}
+
          //...
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
@@ -244,6 +258,41 @@ int Imprimir(EXT_ENTRADA_DIR directorio, EXT_BLQ_INODOSinodos, EXT_DATOS memdato
         }
     }
 
+    printf("ERROR: Fichero %s no encontrado\n", nombre);
+    return -1;
+}
+
+int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre, FILE *fich) {
+    int i;
+    // Buscar el archivo en el directorio
+    for(i = 0; i < MAX_FICHEROS; i++) {
+        if(directorio[i].dir_inodo != NULL_INODO && 
+           strcmp(directorio[i].dir_nfich, nombre) == 0) {
+            
+            int num_inodo = directorio[i].dir_inodo;
+            EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[num_inodo];
+            
+            for(int j = 0; j < MAX_NUMS_BLOQUE_INODO && inodo->i_nbloque[j] != NULL_BLOQUE; j++) {
+                ext_bytemaps->bmap_bloques[inodo->i_nbloque[j]] = 0;
+                ext_superblock->s_free_blocks_count++;
+            }
+            
+            ext_bytemaps->bmap_inodos[num_inodo] = 0;
+            ext_superblock->s_free_inodes_count++;
+            
+            inodo->size_fichero = 0;
+            for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++) {
+                inodo->i_nbloque[j] = NULL_BLOQUE;
+            }
+            
+            // Eliminar la entrada del directorio
+            memset(directorio[i].dir_nfich, 0, LEN_NFICH);
+            directorio[i].dir_inodo = NULL_INODO;
+            
+            return 0;
+        }
+    }
+    
     printf("ERROR: Fichero %s no encontrado\n", nombre);
     return -1;
 }
