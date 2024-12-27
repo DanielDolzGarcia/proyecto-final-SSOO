@@ -84,6 +84,14 @@ int main()
             Grabarinodosydirectorio(&directorio, &ext_blq_inodos, fent);
             continue;
         }
+        /*if (strcmp(orden, "imprimir")==0) {
+            if (argumento1[0] == '\0') {
+                printf("ERROR: Sintaxis incorrecta. Uso: imprimir <nombre_fichero>\n");
+                continue;
+            }
+            Imprimir(directorio, &ext_blq_inodos, memdatos, argumento1);
+            continue;
+        }*/
          //...
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
@@ -213,3 +221,26 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
     printf("ERROR: Fichero %s no encontrado\n", nombreantiguo);
     return -1;
 }
+
+/*int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) { //Da error
+    int i;
+    for(i = 0; i < MAX_FICHEROS; i++) {
+        if(directorio[i].dir_inodo != NULL_INODO && 
+           strcmp(directorio[i].dir_nfich, nombre) == 0) {
+            // Obtener el inodo
+            EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[directorio[i].dir_inodo];
+            
+            for(int j = 0; j < MAX_NUMS_BLOQUE_INODO && inodo->i_nbloque[j] != NULL_BLOQUE; j++) {
+                int indice_bloque = inodo->i_nbloque[j] - PRIM_BLOQUE_DATOS;
+                if(indice_bloque >= 0 && indice_bloque < MAX_BLOQUES_DATOS) {
+                    write(1, memdatos[indice_bloque].dato, SIZE_BLOQUE);
+                }
+            }
+            printf("\n");
+            return 0;
+        }
+    }
+    
+    printf("ERROR: Fichero %s no encontrado\n", nombre);
+    return -1;
+}*/
