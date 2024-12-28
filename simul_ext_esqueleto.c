@@ -30,10 +30,10 @@ void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
 
 int main()
 {
-	 char *comando[LONGITUD_COMANDO];
-	 char *orden[LONGITUD_COMANDO];
-	 char *argumento1[LONGITUD_COMANDO];
-	 char *argumento2[LONGITUD_COMANDO];
+	 char comando[LONGITUD_COMANDO];
+	 char orden[LONGITUD_COMANDO];
+	 char argumento1[LONGITUD_COMANDO];
+	 char argumento2[LONGITUD_COMANDO];
 	 
 	 int i,j;
 	 unsigned long int m;
@@ -105,7 +105,7 @@ int main()
           }
           continue;
         }
-        /*if (strcmp(orden, "copy")==0) {
+        if (strcmp(orden, "copy")==0) {
                 if (argumento1[0] == '\0' || argumento2[0] == '\0') {
                     printf("ERROR: Sintaxis incorrecta. Uso: copy <nombre_origen> <nombre_destino>\n");
                     continue;
@@ -118,7 +118,7 @@ int main()
                     grabardatos = 1;  // Indicar que hay que guardar los datos
                 }
                 continue;
-        }*/
+        }
 
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
@@ -362,8 +362,35 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
     EXT_SIMPLE_INODE *nuevo_inodo_struct = &inodos->blq_inodos[nuevo_inodo];
     nuevo_inodo_struct->size_fichero = inodo_orig->size_fichero;
 
-    // Falta corregir la parte de copia de bloques, lo dejamos para el siguiente commit
+    for(i = 0; i < MAX_NUMS_BLOQUE_INODO && inodo_orig->i_nbloque[i] != NULL_BLOQUE; i++) {
+        int nuevo_bloque = -1;
+        for(int j = PRIM_BLOQUE_DATOS; j < MAX_BLOQUES_PARTICION; j++) {
+            if(ext_bytemaps->bmap_bloques[j] == 0) {
+                nuevo_bloque = j;
+                break;
+            }
+        }
 
+        if(nuevo_bloque == -1) {
+            printf("ERROR: No hay bloques libres\n");
+            return -1;
+        }
+
+        int indice_origen = inodo_orig->i_nbloque[i] - PRIM_BLOQUE_DATOS;
+        int indice_destino = nuevo_bloque - PRIM_BLOQUE_DATOS;
+        memcpy(memdatos[indice_destino].dato, memdatos[indice_origen].dato, SIZE_BLOQUE);
+
+        nuevo_inodo_struct->i_nbloque[i] = nuevo_bloque;
+        ext_bytemaps->bmap_bloques[nuevo_bloque] = 1;
+        ext_superblock->s_free_blocks_count--;
+    }
+
+    for(; i < MAX_NUMS_BLOQUE_INODO; i++) {
+        nuevo_inodo_struct->i_nbloque[i] = NULL_BLOQUE;
+    }
+
+    ext_bytemaps->bmap_inodos[nuevo_inodo] = 1;
+    ext_superblock->s_free_inodes_count--;
     strcpy(directorio[entrada_libre].dir_nfich, nombredestino);
     directorio[entrada_libre].dir_inodo = nuevo_inodo;
 
