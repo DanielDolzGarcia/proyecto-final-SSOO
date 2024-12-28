@@ -16,7 +16,7 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos);
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, 
               char *nombreantiguo, char *nombrenuevo);
 int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, 
-             EXT_DATOS *memdatos, char *nombre)
+             EXT_DATOS *memdatos, char *nombre);
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,
            EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,
            char *nombre,  FILE *fich);
@@ -254,20 +254,25 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
     return -1;
 }
 
-int Imprimir(EXT_ENTRADA_DIR directorio, EXT_BLQ_INODOSinodos, EXT_DATOS memdatos, charnombre) {
+int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre) {
     int i;
+    // Buscar el archivo en el directorio
     for(i = 0; i < MAX_FICHEROS; i++) {
         if(directorio[i].dir_inodo != NULL_INODO && 
            strcmp(directorio[i].dir_nfich, nombre) == 0) {
             // Obtener el inodo
-            EXT_SIMPLE_INODE inodo = &inodos->blq_inodos[directorio[i].dir_inodo];
-
+            EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[directorio[i].dir_inodo];
+            
+            // Recorrer la lista de bloques del inodo
             for(int j = 0; j < MAX_NUMS_BLOQUE_INODO && inodo->i_nbloque[j] != NULL_BLOQUE; j++) {
+                // El índice en memdatos es: nbloque - primer_bloque_datos
                 int indice_bloque = inodo->i_nbloque[j] - PRIM_BLOQUE_DATOS;
                 if(indice_bloque >= 0 && indice_bloque < MAX_BLOQUES_DATOS) {
-                    int bytes_restantes = inodo->size_fichero - (j SIZE_BLOQUE);
+                    // Determinar cuántos bytes imprimir de este bloque
+                    int bytes_restantes = inodo->size_fichero - (j * SIZE_BLOQUE);
                     int bytes_a_imprimir = (bytes_restantes < SIZE_BLOQUE) ? bytes_restantes : SIZE_BLOQUE;
-
+                    
+                    // Imprimir el contenido del bloque
                     fwrite(memdatos[indice_bloque].dato, 1, bytes_a_imprimir, stdout);
                 }
             }
@@ -275,7 +280,7 @@ int Imprimir(EXT_ENTRADA_DIR directorio, EXT_BLQ_INODOSinodos, EXT_DATOS memdato
             return 0;
         }
     }
-
+    
     printf("ERROR: Fichero %s no encontrado\n", nombre);
     return -1;
 }
