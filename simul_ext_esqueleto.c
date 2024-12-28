@@ -106,21 +106,26 @@ int main()
           continue;
         }
         if (strcmp(orden, "copy")==0) {
-                if (argumento1[0] == '\0' || argumento2[0] == '\0') {
-                    printf("ERROR: Sintaxis incorrecta. Uso: copy <nombre_origen> <nombre_destino>\n");
-                    continue;
-                }
-                if (Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent) == 0) {
-                    // Guardar cambios
-                    Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
-                    GrabarByteMaps(&ext_bytemaps, fent);
-                    GrabarSuperBloque(&ext_superblock, fent);
-                    grabardatos = 1;  // Indicar que hay que guardar los datos
-                }
+            if (argumento1[0] == '\0' || argumento2[0] == '\0') {
+                printf("ERROR: Sintaxis incorrecta. Uso: copy <nombre_origen> <nombre_destino>\n");
                 continue;
+            }
+            if (Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent) == 0) {
+                // Guardar cambios
+                Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+                GrabarByteMaps(&ext_bytemaps, fent);
+                GrabarSuperBloque(&ext_superblock, fent);
+                grabardatos = 1;  // Indicar que hay que guardar los datos
+            }
+            continue;
         }
 
-         // Escritura de metadatos en comandos rename, remove, copy     
+		if (strcmp(orden,"bytemaps")==0) {
+			Printbytemaps(&ext_bytemaps);
+			continue;
+        }
+		
+        // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
          GrabarByteMaps(&ext_bytemaps,fent);
          GrabarSuperBloque(&ext_superblock,fent);
@@ -204,18 +209,18 @@ void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
     printf("\n");
 }
 
-void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
+void Directorio(EXT_ENTRADA_DIR (*directorio)[MAX_FICHEROS], EXT_BLQ_INODOS *inodos) {
     // Empezamos en 1 para saltar la entrada "."
     for(int i = 1; i < MAX_FICHEROS; i++) {
-        if(directorio[i].dir_inodo != NULL_INODO) {
+        if((*directorio)[i].dir_inodo != NULL_INODO) {
             // Obtener el inodo correspondiente
-            EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[directorio[i].dir_inodo];
+            EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[(*directorio)[i].dir_inodo];
             
             // Imprimir nombre y tamaño
-            printf("%s\ttamaño:%d\tinodo:%d bloques:", 
-                   directorio[i].dir_nfich,
+            printf("%s\ttamano:%d\tinodo:%d bloques:", 
+                   (*directorio)[i].dir_nfich,
                    inodo->size_fichero,
-                   directorio[i].dir_inodo);
+                   (*directorio)[i].dir_inodo);
             
             // Imprimir lista de bloques
             for(int j = 0; j < MAX_NUMS_BLOQUE_INODO && inodo->i_nbloque[j] != NULL_BLOQUE; j++) {
