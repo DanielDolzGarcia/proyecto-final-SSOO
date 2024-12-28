@@ -118,9 +118,8 @@ int main()
                     grabardatos = 1;  // Indicar que hay que guardar los datos
                 }
                 continue;
-            }*/
+        }*/
 
-         //...
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
          GrabarByteMaps(&ext_bytemaps,fent);
@@ -310,13 +309,12 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
     printf("ERROR: Fichero %s no encontrado\n", nombre);
     return -1;
 }
-//Arreglar errores
-/*int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino, FILE *fich) {
+
+int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino, FILE *fich) {
     int i, encontrado = 0;
     int inodo_origen = -1;
     EXT_SIMPLE_INODE *inodo_orig = NULL;
 
-    //Verificar que existe origen y no existe destino
     for(i = 0; i < MAX_FICHEROS; i++) {
         if(directorio[i].dir_inodo != NULL_INODO) {
             if(strcmp(directorio[i].dir_nfich, nombreorigen) == 0) {
@@ -335,7 +333,6 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
         return -1;
     }
 
-    //Buscar inodo libre y crear entrada
     int nuevo_inodo = -1;
     for(i = 0; i < MAX_INODOS; i++) {
         if(ext_bytemaps->bmap_inodos[i] == 0) {
@@ -343,18 +340,32 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
             break;
         }
     }
-    
-    // Copiar datos
+
+    if(nuevo_inodo == -1) {
+        printf("ERROR: No hay inodos libres\n");
+        return -1;
+    }
+
+    int entrada_libre = -1;
+    for(i = 0; i < MAX_FICHEROS; i++) {
+        if(directorio[i].dir_inodo == NULL_INODO) {
+            entrada_libre = i;
+            break;
+        }
+    }
+
+    if(entrada_libre == -1) {
+        printf("ERROR: No hay entradas libres en el directorio\n");
+        return -1;
+    }
+
     EXT_SIMPLE_INODE *nuevo_inodo_struct = &inodos->blq_inodos[nuevo_inodo];
     nuevo_inodo_struct->size_fichero = inodo_orig->size_fichero;
 
-    for(i = 0; i < MAX_NUMS_BLOQUE_INODO && inodo_orig->i_nbloque[i] != NULL_BLOQUE; i++) {
-        memcpy(&memdatos[i], &memdatos[inodo_orig->i_nbloque[i]], SIZE_BLOQUE);
-        nuevo_inodo_struct->i_nbloque[i] = i;
-        ext_bytemaps->bmap_bloques[i] = 1;
-    }
-    ext_bytemaps->bmap_inodos[nuevo_inodo] = 1;
-    ext_superblock->s_free_inodes_count--;
+    // Falta corregir la parte de copia de bloques, lo dejamos para el siguiente commit
+
+    strcpy(directorio[entrada_libre].dir_nfich, nombredestino);
+    directorio[entrada_libre].dir_inodo = nuevo_inodo;
 
     return 0;
-}*/
+}
