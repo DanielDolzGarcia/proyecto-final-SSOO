@@ -92,19 +92,33 @@ int main()
             Imprimir(directorio, &ext_blq_inodos, memdatos, argumento1);
             continue;
         }
-		if (strcmp(orden, "remove")==0) {
-			if (argumento1[0] == '\0') {
-				printf("ERROR: Sintaxis incorrecta. Uso: remove <nombre_fichero>\n");
-				continue;
-			}
-			if (Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent) == 0) {
-				// Guardar cambios
-				Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
-				GrabarByteMaps(&ext_bytemaps, fent);
-				GrabarSuperBloque(&ext_superblock, fent);
-			}
-			continue;
-		}
+        if (strcmp(orden, "remove")==0) {
+          if (argumento1[0] == '\0') {
+            printf("ERROR: Sintaxis incorrecta. Uso: remove <nombre_fichero>\n");
+            continue;
+          }
+          if (Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent) == 0) {
+            // Guardar cambios
+            Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+            GrabarByteMaps(&ext_bytemaps, fent);
+            GrabarSuperBloque(&ext_superblock, fent);
+          }
+          continue;
+        }
+        /*if (strcmp(orden, "copy")==0) {
+                if (argumento1[0] == '\0' || argumento2[0] == '\0') {
+                    printf("ERROR: Sintaxis incorrecta. Uso: copy <nombre_origen> <nombre_destino>\n");
+                    continue;
+                }
+                if (Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent) == 0) {
+                    // Guardar cambios
+                    Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
+                    GrabarByteMaps(&ext_bytemaps, fent);
+                    GrabarSuperBloque(&ext_superblock, fent);
+                    grabardatos = 1;  // Indicar que hay que guardar los datos
+                }
+                continue;
+            }*/
 
          //...
          // Escritura de metadatos en comandos rename, remove, copy     
@@ -296,3 +310,51 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
     printf("ERROR: Fichero %s no encontrado\n", nombre);
     return -1;
 }
+//Arreglar errores
+/*int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino, FILE *fich) {
+    int i, encontrado = 0;
+    int inodo_origen = -1;
+    EXT_SIMPLE_INODE *inodo_orig = NULL;
+
+    //Verificar que existe origen y no existe destino
+    for(i = 0; i < MAX_FICHEROS; i++) {
+        if(directorio[i].dir_inodo != NULL_INODO) {
+            if(strcmp(directorio[i].dir_nfich, nombreorigen) == 0) {
+                inodo_origen = directorio[i].dir_inodo;
+                inodo_orig = &inodos->blq_inodos[inodo_origen];
+                encontrado = 1;
+            } else if(strcmp(directorio[i].dir_nfich, nombredestino) == 0) {
+                printf("ERROR: El fichero %s ya existe\n", nombredestino);
+                return -1;
+            }
+        }
+    }
+
+    if(!encontrado) {
+        printf("ERROR: Fichero origen %s no encontrado\n", nombreorigen);
+        return -1;
+    }
+
+    //Buscar inodo libre y crear entrada
+    int nuevo_inodo = -1;
+    for(i = 0; i < MAX_INODOS; i++) {
+        if(ext_bytemaps->bmap_inodos[i] == 0) {
+            nuevo_inodo = i;
+            break;
+        }
+    }
+    
+    // Copiar datos
+    EXT_SIMPLE_INODE *nuevo_inodo_struct = &inodos->blq_inodos[nuevo_inodo];
+    nuevo_inodo_struct->size_fichero = inodo_orig->size_fichero;
+
+    for(i = 0; i < MAX_NUMS_BLOQUE_INODO && inodo_orig->i_nbloque[i] != NULL_BLOQUE; i++) {
+        memcpy(&memdatos[i], &memdatos[inodo_orig->i_nbloque[i]], SIZE_BLOQUE);
+        nuevo_inodo_struct->i_nbloque[i] = i;
+        ext_bytemaps->bmap_bloques[i] = 1;
+    }
+    ext_bytemaps->bmap_inodos[nuevo_inodo] = 1;
+    ext_superblock->s_free_inodes_count--;
+
+    return 0;
+}*/
