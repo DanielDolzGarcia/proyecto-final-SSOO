@@ -137,6 +137,8 @@ int main()
             fclose(fent);
             return 0;
          }
+        printf("%s: comando no encontrado\n", orden);
+        continue;
      }
 }
 
